@@ -2,8 +2,14 @@ import { VscHubot } from "react-icons/vsc";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { useState } from "react";
 import { TiTick } from "react-icons/ti";
+import { FaPlus } from "react-icons/fa6";
 
-export default function Nav({ documents, selected, setSelected }) {
+export default function Nav({
+  documents,
+  selected,
+  setSelected,
+  setCreateModal,
+}) {
   const [showDropdown, setShowDropdown] = useState(false);
 
   const hideDropdown = () => {
@@ -14,7 +20,7 @@ export default function Nav({ documents, selected, setSelected }) {
     <nav>
       <h1>
         <VscHubot /> Document Q&A
-        <button onClick={hideDropdown}>
+        <button className="drop-btn" onClick={hideDropdown}>
           <IoMdArrowDropdown
             style={{ rotate: showDropdown ? "180deg" : "0deg" }}
           />
@@ -28,6 +34,9 @@ export default function Nav({ documents, selected, setSelected }) {
           />
         )}
       </h1>
+      <button className="add-btn" onClick={() => setCreateModal(true)}>
+        <FaPlus />
+      </button>
     </nav>
   );
 }

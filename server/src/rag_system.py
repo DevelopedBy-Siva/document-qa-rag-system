@@ -53,7 +53,7 @@ class IncrementalRAGSystem:
         if doc_name is None:
             doc_name = Path(file_path).stem
 
-        print(f"\n📄 Processing document: {doc_name}")
+        print(f"\nProcessing document: {doc_name}")
 
         full_text, chunks = self.processor.process_document(file_path)
         file_hash = self.processor.compute_file_hash(file_path)
@@ -145,7 +145,6 @@ class IncrementalRAGSystem:
     def query(
         self, question: str, version_id: Optional[int] = None, k: int = 5
     ) -> List[dict]:
-
         print(f"\nQuerying: '{question}'")
 
         query_embedding = self.embedder.embed_text(question)
@@ -164,8 +163,7 @@ class IncrementalRAGSystem:
                     "document_name": metadata.get("doc_name", ""),
                     "version": metadata.get("version_number", ""),
                     "chunk_index": metadata.get("chunk_index", ""),
-                    "similarity_score": 1
-                    / (1 + distance),  # Convert distance to similarity
+                    "similarity_score": 1 / (1 + distance),
                 }
             )
 
@@ -239,12 +237,3 @@ class IncrementalRAGSystem:
             }
         finally:
             session.close()
-
-
-if __name__ == "__main__":
-    rag = IncrementalRAGSystem()
-
-    print("\nSystem Stats:")
-    stats = rag.get_stats()
-    for key, value in stats.items():
-        print(f"  {key}: {value}")

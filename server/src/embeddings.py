@@ -31,21 +31,3 @@ class EmbeddingGenerator:
 
     def get_embedding_dim(self) -> int:
         return self.embedding_dim
-
-
-if __name__ == "__main__":
-    generator = EmbeddingGenerator()
-
-    text = "This is a test sentence for embedding."
-    embedding = generator.embed_text(text)
-    print(f"\nSingle embedding shape: {embedding.shape}")
-    print(f"First 5 values: {embedding[:5]}")
-
-    texts = [
-        "First document about machine learning.",
-        "Second document about natural language processing.",
-        "Third document about computer vision.",
-    ]
-    embeddings = generator.embed_batch(texts)
-    print(f"\nBatch embeddings shape: {embeddings.shape}")
-    print(f"Shape: {embeddings.shape[0]} texts x {embeddings.shape[1]} dimensions")

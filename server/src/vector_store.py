@@ -8,10 +8,11 @@ from typing import List, Tuple, Optional
 class FAISSVectorStore:
 
     def __init__(self, embedding_dim: int, index_path: str = None):
+
         self.embedding_dim = embedding_dim
         self.index_path = index_path or "./data/faiss_index"
         self.index = None
-        self.id_to_metadata = {}
+        self.id_to_metadata = {}  # Map FAISS ID to metadata
         self.current_id = 0
 
         Path(self.index_path).parent.mkdir(parents=True, exist_ok=True)
@@ -28,6 +29,7 @@ class FAISSVectorStore:
         print(f"Created new FAISS index with dimension {self.embedding_dim}")
 
     def add_embeddings(self, embeddings: np.ndarray, metadata: List[dict]) -> List[int]:
+
         if embeddings.shape[1] != self.embedding_dim:
             raise ValueError(
                 f"Embedding dimension mismatch: expected {self.embedding_dim}, "
@@ -55,6 +57,7 @@ class FAISSVectorStore:
         k: int = 5,
         version_filter: Optional[int] = None,
     ) -> List[Tuple[float, dict]]:
+
         if self.index.ntotal == 0:
             return []
 
@@ -121,28 +124,3 @@ class FAISSVectorStore:
             "embedding_dim": self.embedding_dim,
             "index_path": self.index_path,
         }
-
-
-if __name__ == "__main__":
-    dim = 384
-    store = FAISSVectorStore(embedding_dim=dim, index_path="./test_index")
-
-    embeddings1 = np.random.rand(10, dim).astype("float32")
-    metadata1 = [{"doc_id": 1, "version_id": 1, "chunk": i} for i in range(10)]
-    ids1 = store.add_embeddings(embeddings1, metadata1)
-    print(f"Added IDs: {ids1}")
-
-    embeddings2 = np.random.rand(5, dim).astype("float32")
-    metadata2 = [{"doc_id": 1, "version_id": 2, "chunk": i} for i in range(5)]
-    ids2 = store.add_embeddings(embeddings2, metadata2)
-    print(f"Added IDs: {ids2}")
-
-    query = np.random.rand(dim).astype("float32")
-    results = store.search(query, k=3)
-    print(f"\nSearch results: {len(results)}")
-    for dist, meta in results:
-        print(f"  Distance: {dist:.4f}, Metadata: {meta}")
-
-    store.save()
-
-    print(f"\nStats: {store.get_stats()}")

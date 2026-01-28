@@ -3,6 +3,7 @@ import { IoIosClose } from "react-icons/io";
 import { FileUploader } from "react-drag-drop-files";
 import { useState } from "react";
 import { MdOutlineUploadFile } from "react-icons/md";
+import ReactFocusLock from "react-focus-lock";
 
 const fileTypes = ["PDF", "TXT"];
 
@@ -47,24 +48,26 @@ function UploadModal({ setShowModal, file }) {
   };
 
   return (
-    <div className="upload-modal-wrapper">
-      <button className="close" onClick={close}>
-        <IoIosClose />
-      </button>
-      <div className="upload-modal">
-        <h2>
-          <MdOutlineUploadFile /> Upload Document
-        </h2>
-        <div className="upload-content">
-          <p className="selected">
-            File Selected: <span>{file.name}</span>
-          </p>
-          <p className="selected">
-            This will update the document <span>{file.name}</span>
-          </p>
-          <button className="upload-btn">Upload</button>
+    <ReactFocusLock>
+      <div className="upload-modal-wrapper">
+        <button className="close" onClick={close}>
+          <IoIosClose />
+        </button>
+        <div className="upload-modal">
+          <h2>
+            <MdOutlineUploadFile /> Upload Document
+          </h2>
+          <div className="upload-content">
+            <p className="selected">
+              File Selected: <span>{file.name}</span>
+            </p>
+            <p className="selected">
+              This will update the document <span>{file.name}</span>
+            </p>
+            <button className="upload-btn">Upload</button>
+          </div>
         </div>
       </div>
-    </div>
+    </ReactFocusLock>
   );
 }

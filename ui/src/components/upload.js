@@ -4,24 +4,33 @@ import { FileUploader } from "react-drag-drop-files";
 import { useState } from "react";
 import { MdOutlineUploadFile } from "react-icons/md";
 import ReactFocusLock from "react-focus-lock";
+import { FaFolder } from "react-icons/fa";
 
 const fileTypes = ["PDF", "TXT"];
 
-export default function Upload() {
+export default function Upload({ documents, selected }) {
   return (
     <div className="upload">
       <h2 className="block-headings">
         <IoDocumentsOutline /> Documents & Versions
       </h2>
       <div className="overflow-wrapper">
-        <DragDrop />
+        <DragDrop documents={documents} selected={selected} />
         <div className="block" />
+        {documents.length > 0 && (
+          <div className="folder">
+            <h4 className="block-sub-headings">
+              <FaFolder /> {documents[selected]}
+            </h4>
+            <p>No snapshots found</p>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-function DragDrop() {
+function DragDrop({ documents, selected }) {
   const [file, setFile] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const handleChange = (file) => {
@@ -37,12 +46,19 @@ function DragDrop() {
           <span> ( .pdf or .txt )</span>
         </div>
       </FileUploader>
-      {showModal && <UploadModal setShowModal={setShowModal} file={file} />}
+      {showModal && (
+        <UploadModal
+          documents={documents}
+          selected={selected}
+          setShowModal={setShowModal}
+          file={file}
+        />
+      )}
     </>
   );
 }
 
-function UploadModal({ setShowModal, file }) {
+function UploadModal({ setShowModal, file, documents, selected }) {
   const close = () => {
     setShowModal(false);
   };
@@ -62,7 +78,10 @@ function UploadModal({ setShowModal, file }) {
               File Selected: <span>{file.name}</span>
             </p>
             <p className="selected">
-              This will update the document <span>{file.name}</span>
+              This will update the document folder{" "}
+              <span style={{ textTransform: "capitalize" }}>
+                {documents[selected]}
+              </span>
             </p>
             <button className="upload-btn">Upload</button>
           </div>

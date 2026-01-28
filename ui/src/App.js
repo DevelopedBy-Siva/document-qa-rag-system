@@ -33,7 +33,7 @@ function App() {
         setCreateModal={setCreateModal}
       />
       <div className="wrapper">
-        <Upload />
+        <Upload documents={documents} selected={selected} />
         <Query />
         <Diff />
       </div>

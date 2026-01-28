@@ -19,21 +19,79 @@ body {
 }
 
 nav {
-  padding: 20px;
+  padding: 25px 20px;
   background: #fff;
 }
 
 nav h1 {
   color: #222222;
   font-size: 20px;
-  font-weight: 500;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 10px;
+  position: relative;
+  width: fit-content;
+}
+
+nav .doc-dropdown {
+  position: absolute;
+  background: #fff;
+  box-shadow:
+    rgba(0, 0, 0, 0.16) 0px 10px 36px 0px,
+    rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+  right: 0;
+  top: 35px;
+  list-style: none;
+  border-radius: 5px;
+  min-width: 170px;
+  overflow: hidden;
+}
+
+nav .doc-dropdown li {
+  font-size: 13px;
+  font-weight: 300;
+  padding: 15px 15px;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  user-select: none;
+}
+
+nav .doc-dropdown li:hover {
+  background: #1d61ff;
+  cursor: pointer;
+  color: #fff;
 }
 
 nav svg {
-  font-size: 30px;
+  color: #1d61ff;
+  font-size: 34px;
+}
+
+nav .doc-dropdown li svg {
+  font-size: 16px;
+  flex-shrink: 0;
+  color: #222222;
+}
+
+nav .doc-dropdown li:hover svg {
+  color: #fff;
+}
+
+nav button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+nav button svg {
+  flex-shrink: 0;
+  font-size: 24px;
+  color: #979797;
 }
 
 .wrapper {
@@ -117,10 +175,17 @@ nav svg {
 
 .diff-modal h2 {
   font-size: 16px;
-  font-weight: 400;
+  font-weight: 500;
   padding: 0 20px 15px 20px;
   border-bottom: 1px solid #e9e9e9;
   color: #222222;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.diff-modal h2 svg {
+  font-size: 16px;
 }
 
 .query {
@@ -153,7 +218,7 @@ nav svg {
 
 .block-headings {
   font-size: 16px;
-  font-weight: 400;
+  font-weight: 500;
   padding: 0 20px 15px 20px;
   border-bottom: 1px solid #e9e9e9;
   color: #222222;
@@ -184,7 +249,7 @@ nav svg {
   border: 1px solid #d5d5d5;
   border-radius: 5px;
   padding: 15px;
-  font-size: 15px;
+  font-size: 14px;
   font-family: "Poppins", sans-serif;
   font-weight: 400;
   color: #222222;
@@ -215,5 +280,117 @@ nav svg {
   border-bottom: 1px solid #e9e9e9;
 }
 
-.query .query-response {
+.dropzone {
+  text-align: center;
+  width: 100%;
+  display: block;
+  margin: 5px 0 5px 0;
+  border: 1px solid #d5d5d5;
+  border-style: dashed;
+  padding: 25px 5px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.dropzone p {
+  font-weight: 500;
+  font-size: 14px;
+  color: #222222;
+}
+
+.dropzone span {
+  font-weight: 400;
+  font-size: 11px;
+  color: #979797;
+}
+
+.upload-modal-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #2b2b2be0;
+}
+
+.upload-modal-wrapper .close {
+  background: none;
+  outline: none;
+  border: none;
+  color: #fff;
+  font-size: 40px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+}
+
+.upload-modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 95vw;
+  max-width: 500px;
+  height: calc(100vh - 40px);
+  max-height: 250px;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 25px 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.upload-content {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  padding: 0 25px;
+}
+
+.upload-modal h2 {
+  font-size: 16px;
+  font-weight: 500;
+  padding: 0 20px 15px 20px;
+  border-bottom: 1px solid #e9e9e9;
+  color: #222222;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 20px;
+}
+
+.upload-content .upload-btn {
+  background: #1d61ff;
+  color: #fff;
+  border-radius: 5px;
+  border: none;
+  padding: 10px 14px;
+  margin: 25px auto 0 auto;
+  display: block;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.upload-content p.selected {
+  color: #979797;
+  font-weight: 300;
+  font-size: 13px;
+  text-align: center;
+}
+
+.upload-content p.selected span {
+  font-weight: 500;
+}
+
+.upload-content .upload-btn:hover {
+  background: #1d61ffe5;
 }

@@ -1,4 +1,5 @@
 import { IoIosClose } from "react-icons/io";
+import { TbArrowsDiff } from "react-icons/tb";
 
 export default function DiffModal({ setShowModal }) {
   const close = () => {
@@ -11,7 +12,9 @@ export default function DiffModal({ setShowModal }) {
         <IoIosClose />
       </button>
       <div className="diff-modal">
-        <h2>Version Differences</h2>
+        <h2>
+          <TbArrowsDiff /> Version Differences
+        </h2>
         <div className="diff-content"></div>
       </div>
     </div>

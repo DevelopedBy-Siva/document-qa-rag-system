@@ -6,8 +6,11 @@ export default function Diff() {
 
   return (
     <div className="diff">
+      <h2 className="block-headings">Version Differences</h2>
       <div className="overflow-wrapper">
-        <button onClick={() => setShowModal(true)}>Hello</button>
+        <button className="show-diff-btn" onClick={() => setShowModal(true)}>
+          Show diff
+        </button>
       </div>
       {showModal && <DiffModal setShowModal={setShowModal} />}
     </div>

@@ -11,6 +11,7 @@ export default function DiffModal({ setShowModal }) {
         <IoIosClose />
       </button>
       <div className="diff-modal">
+        <h2>Version Differences</h2>
         <div className="diff-content"></div>
       </div>
     </div>

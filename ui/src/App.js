@@ -76,7 +76,7 @@ function DocumentSelectModal({ addDocumentFolder, setCreateModal, documents }) {
   return (
     <ReactFocusLock>
       <div className="create-doc-modal-wrapper">
-        {documents.length != 0 && (
+        {documents.length !== 0 && (
           <button className="close" onClick={close}>
             <IoIosClose />
           </button>

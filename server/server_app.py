@@ -7,11 +7,17 @@ import shutil
 import os
 from pathlib import Path
 import sys
+from google.generativeai import configure, GenerativeModel
+
 
 sys.path.insert(0, str(Path(__file__).parent))
 
 from src.rag_system import IncrementalRAGSystem
 from src.database import get_db_session, Document, DocumentVersion
+
+
+configure(api_key=os.getenv("GEMINI_API_KEY"))
+model = GenerativeModel("models/gemini-1.5-flash")
 
 app = FastAPI(
     title="Incremental RAG API",
@@ -107,22 +113,46 @@ async def upload_document(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/api/query")
-async def query_documents(query_request: QueryRequest):
-    try:
-        results = rag_system.query(
-            question=query_request.question,
-            version_id=query_request.version_id,
-            k=query_request.k,
-        )
+@app.post("/api/query/generate")
+async def query_with_llm(query_request: QueryRequest):
+    results = rag_system.query(
+        question=query_request.question, version_id=query_request.version_id, k=5
+    )
 
+    if not results:
         return {
             "question": query_request.question,
-            "results": results,
-            "version_id": query_request.version_id,
+            "answer": "Not found in the document.",
+            "sources": [],
         }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+
+    context = "\n\n".join(
+        f"[Source {i+1}]\n{r['content']}" for i, r in enumerate(results)
+    )
+
+    prompt = f"""
+You are a document Q&A assistant.
+
+Answer ONLY using the provided context.
+If the answer is not present, say "Not found in the document."
+Do not use external knowledge.
+
+Context:
+{context}
+
+Question:
+{query_request.question}
+
+Answer:
+"""
+
+    response = model.generate_content(prompt)
+
+    return {
+        "question": query_request.question,
+        "answer": response.text.strip(),
+        "sources": results,
+    }
 
 
 @app.get("/api/documents")
@@ -149,38 +179,23 @@ async def get_document_versions(doc_name: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/versions")
-async def get_all_versions():
+@app.get("/api/documents/{doc_name}/versions")
+async def get_document_versions(doc_name: str):
     try:
-        session = get_db_session()
+        versions = rag_system.get_document_versions(doc_name)
 
-        try:
-            versions = (
-                session.query(
-                    DocumentVersion.id,
-                    DocumentVersion.version_number,
-                    DocumentVersion.upload_date,
-                    Document.doc_name,
-                )
-                .join(Document)
-                .order_by(Document.doc_name, DocumentVersion.version_number)
-                .all()
+        if not versions:
+            raise HTTPException(
+                status_code=404, detail=f"Document '{doc_name}' not found"
             )
 
-            result = [
-                {
-                    "version_id": v.id,
-                    "version_number": v.version_number,
-                    "document_name": v.doc_name,
-                    "upload_date": v.upload_date.isoformat(),
-                    "label": f"{v.doc_name} - v{v.version_number}",
-                }
-                for v in versions
-            ]
+        result = [
+            {**v, "label": f"{doc_name} - v{v['version_number']}"} for v in versions
+        ]
 
-            return JSONResponse(content={"success": True, "data": result})
-        finally:
-            session.close()
+        return JSONResponse(content={"success": True, "data": result})
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

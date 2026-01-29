@@ -539,6 +539,7 @@ nav button.add-btn svg {
   font-size: 14px;
   font-weight: 400;
   margin-top: 30px;
+  margin-bottom: 10px;
 }
 
 .folder h4.block-sub-headings {
@@ -549,7 +550,7 @@ nav button.add-btn svg {
   text-transform: capitalize;
 }
 
-.folder p {
+.folder .empty {
   color: #979797;
   font-weight: 300;
   font-size: 12px;
@@ -582,4 +583,52 @@ nav button.add-btn svg {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.upload-versions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.upload-versions {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  user-select: none;
+}
+
+.upload-versions span {
+  width: 20px;
+}
+
+.upload-versions span svg {
+  margin-top: 5px;
+  color: #979797;
+}
+
+.upload-versions p {
+  margin: 0;
+  font-weight: 500;
+  letter-spacing: 1px;
+}
+
+.upload-versions:nth-child(5n + 1) {
+  color: #dd6b00d7;
+}
+
+.upload-versions:nth-child(5n + 2) {
+  color: #0092e6de;
+}
+
+.upload-versions:nth-child(5n + 3) {
+  color: #38a169de;
+}
+
+.upload-versions:nth-child(5n + 4) {
+  color: #815ad5e0;
+}
+
+.upload-versions:nth-child(5n + 5) {
+  color: #e53e3ee1;
 }

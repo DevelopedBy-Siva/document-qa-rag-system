@@ -6,6 +6,7 @@ import { MdOutlineUploadFile } from "react-icons/md";
 import ReactFocusLock from "react-focus-lock";
 import { FaFolder } from "react-icons/fa";
 import axios from "axios";
+import { GoDotFill } from "react-icons/go";
 
 const fileTypes = ["PDF", "TXT", "DOCX"];
 
@@ -28,7 +29,19 @@ export default function Upload({ documents, selected, docFiles, setDocFiles }) {
             <h4 className="block-sub-headings">
               <FaFolder /> {documents[selected].replaceAll("_", " ")}
             </h4>
-            <p>No snapshots found</p>
+            <div className="upload-versions-container">
+              {docFiles.map((item, idx) => {
+                return (
+                  <div className="upload-versions" key={idx}>
+                    <span>{idx === 0 ? <GoDotFill /> : ""}</span>
+                    <p>v{item.version_number}</p>
+                  </div>
+                );
+              })}
+            </div>
+            {docFiles.length === 0 && (
+              <p className="empty">No snapshots found</p>
+            )}
           </div>
         )}
       </div>
@@ -93,7 +106,7 @@ function UploadModal({
   async function uploadDocument() {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("doc_name", file.name);
+    formData.append("doc_name", documents[selected]);
 
     setLoading(true);
     setError("");
@@ -106,7 +119,7 @@ function UploadModal({
       .then(({ data: json }) => {
         const { data } = json;
         const files = [...docFiles];
-        files.push(data.version_number);
+        files.push(data);
         setDocFiles(files);
         close();
       })

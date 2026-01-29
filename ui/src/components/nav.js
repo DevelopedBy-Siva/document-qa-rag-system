@@ -52,7 +52,7 @@ function Dropdown({ documents, selected, setSelected, setShowDropdown }) {
       {documents.map((item, idx) => (
         <li onClick={() => onSelect(idx)} key={idx}>
           <TiTick style={{ opacity: idx === selected ? 1 : 0 }} />
-          {item}
+          {item.replaceAll("_", " ")}
         </li>
       ))}
     </ul>

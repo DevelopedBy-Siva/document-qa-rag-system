@@ -8,7 +8,8 @@ import { IoIosClose } from "react-icons/io";
 import { FaFolderOpen } from "react-icons/fa6";
 
 function App() {
-  const [documents, setDocuments] = useState([]);
+  const [documents, setDocuments] = useState(["work_policy"]);
+  const [docFiles, setDocFiles] = useState([]);
   const [selected, setSelected] = useState(0);
   const [createModal, setCreateModal] = useState(
     documents.length === 0 ? true : false,
@@ -33,7 +34,12 @@ function App() {
         setCreateModal={setCreateModal}
       />
       <div className="wrapper">
-        <Upload documents={documents} selected={selected} />
+        <Upload
+          docFiles={docFiles}
+          setDocFiles={setDocFiles}
+          documents={documents}
+          selected={selected}
+        />
         <Query />
         <Diff />
       </div>

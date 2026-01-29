@@ -3,7 +3,7 @@ uvicorn[standard]==0.27.1
 python-multipart==0.0.9
 
 sentence-transformers==2.3.1
-faiss-cpu==1.7.4
+faiss-cpu==1.9.0.post1
 langchain==0.1.9
 langchain-community==0.0.21
 openai==1.12.0

@@ -1,10 +1,19 @@
 import { MdOutlineQuestionAnswer } from "react-icons/md";
 
-export default function Query() {
+export default function Query({ docFiles, setSeletedDocFile }) {
   return (
     <div className="query">
-      <h2 className="block-headings">
-        <MdOutlineQuestionAnswer /> Ask Question: <Dropdown />
+      <h2 className="block-headings query-header">
+        <MdOutlineQuestionAnswer /> Ask Question
+        {docFiles.length > 0 && (
+          <>
+            :{" "}
+            <Dropdown
+              docFiles={docFiles}
+              setSeletedDocFile={setSeletedDocFile}
+            />
+          </>
+        )}
       </h2>
       <div className="input-container">
         <input
@@ -21,12 +30,23 @@ export default function Query() {
   );
 }
 
-function Dropdown() {
+function Dropdown({ docFiles, setSeletedDocFile }) {
   return (
-    <select name="version-dropdown" id="version-dropdown">
-      <option value="v1">Latest</option>
-      <option value="v1">version 1</option>
-      <option value="v2">version 2</option>
+    <select
+      onChange={(e) => setSeletedDocFile(e.target.value)}
+      name="version-dropdown"
+      id="version-dropdown"
+    >
+      <option value={docFiles.length - 1}>Latest</option>
+      {docFiles.map((item, idx) => {
+        const versionId = item.version_number;
+        const version = `v${versionId}`;
+        return (
+          <option key={idx} value={idx}>
+            {version}
+          </option>
+        );
+      })}
     </select>
   );
 }

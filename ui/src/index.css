@@ -155,6 +155,7 @@ nav button.add-btn svg {
   right: 0;
   bottom: 0;
   background-color: #2b2b2be0;
+  z-index: 999999;
 }
 
 .diff-modal-wrapper .close {
@@ -334,6 +335,7 @@ nav button.add-btn svg {
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 999999;
   background-color: #2b2b2be0;
 }
 
@@ -431,6 +433,7 @@ nav button.add-btn svg {
   right: 0;
   bottom: 0;
   background-color: #2b2b2be0;
+  z-index: 999999;
 }
 
 .create-doc-modal {
@@ -599,11 +602,12 @@ nav button.add-btn svg {
 }
 
 .upload-versions span {
-  width: 20px;
+  width: 25px;
 }
 
 .upload-versions span svg {
   margin-top: 5px;
+  margin-left: 4px;
   color: #979797;
 }
 
@@ -631,4 +635,8 @@ nav button.add-btn svg {
 
 .upload-versions:nth-child(5n + 5) {
   color: #e53e3ee1;
+}
+
+.query-header {
+  height: 55px;
 }

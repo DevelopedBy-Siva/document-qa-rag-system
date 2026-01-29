@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Diff from "./components/diff";
 import Nav from "./components/nav";
 import Query from "./components/query";
@@ -6,14 +6,33 @@ import Upload from "./components/upload";
 import ReactFocusLock from "react-focus-lock";
 import { IoIosClose } from "react-icons/io";
 import { FaFolderOpen } from "react-icons/fa6";
+import axios from "axios";
 
 function App() {
   const [documents, setDocuments] = useState(["work_policy"]);
   const [docFiles, setDocFiles] = useState([]);
+  const [docFilesLoading, setDocFilesLoading] = useState(true);
+
   const [selected, setSelected] = useState(0);
   const [createModal, setCreateModal] = useState(
     documents.length === 0 ? true : false,
   );
+  const [selectedDocFile, setSeletedDocFile] = useState(0);
+
+  const selectedDocId = documents?.[selected];
+  useEffect(() => {
+    if (!selectedDocId) {
+      setDocFiles([]);
+      return;
+    }
+    setDocFiles([]);
+    setDocFilesLoading(true);
+    axios
+      .get(`http://localhost:8000/api/documents/${selectedDocId}/versions`)
+      .then(({ data }) => setDocFiles(data))
+      .catch(() => {})
+      .finally(() => setDocFilesLoading(false));
+  }, [selectedDocId]);
 
   const addDocumentFolder = (name) => {
     const docs = [...documents];
@@ -39,8 +58,9 @@ function App() {
           setDocFiles={setDocFiles}
           documents={documents}
           selected={selected}
+          docFilesLoading={docFilesLoading}
         />
-        <Query />
+        <Query docFiles={docFiles} setSeletedDocFile={setSeletedDocFile} />
         <Diff />
       </div>
       {createModal && (
@@ -71,6 +91,7 @@ function DocumentSelectModal({ addDocumentFolder, setCreateModal, documents }) {
       setError("Folder already exist");
       return;
     }
+
     setCreateModal(false);
     setError("");
   };

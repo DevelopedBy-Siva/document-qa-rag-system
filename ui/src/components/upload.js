@@ -10,7 +10,13 @@ import { GoDotFill } from "react-icons/go";
 
 const fileTypes = ["PDF", "TXT", "DOCX"];
 
-export default function Upload({ documents, selected, docFiles, setDocFiles }) {
+export default function Upload({
+  documents,
+  selected,
+  docFiles,
+  setDocFiles,
+  docFilesLoading,
+}) {
   return (
     <div className="upload">
       <h2 className="block-headings">
@@ -29,18 +35,27 @@ export default function Upload({ documents, selected, docFiles, setDocFiles }) {
             <h4 className="block-sub-headings">
               <FaFolder /> {documents[selected].replaceAll("_", " ")}
             </h4>
-            <div className="upload-versions-container">
-              {docFiles.map((item, idx) => {
-                return (
-                  <div className="upload-versions" key={idx}>
-                    <span>{idx === 0 ? <GoDotFill /> : ""}</span>
-                    <p>v{item.version_number}</p>
-                  </div>
-                );
-              })}
-            </div>
-            {docFiles.length === 0 && (
-              <p className="empty">No snapshots found</p>
+            {docFilesLoading ? (
+              <p className="empty">Loading...</p>
+            ) : (
+              <>
+                <div className="upload-versions-container">
+                  {docFiles.map((item, idx) => {
+                    return (
+                      <div className="upload-versions" key={idx}>
+                        <span>
+                          {idx === docFiles.length - 1 ? <GoDotFill /> : ""}
+                        </span>
+                        <p>v{item.version_number}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {docFiles.length === 0 && (
+                  <p className="empty">No snapshots found</p>
+                )}
+              </>
             )}
           </div>
         )}

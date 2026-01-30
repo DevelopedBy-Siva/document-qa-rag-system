@@ -7,8 +7,8 @@ import shutil
 import os
 from pathlib import Path
 import sys
-from google.generativeai import configure, GenerativeModel
-
+from openai import OpenAI
+import json
 
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -16,8 +16,10 @@ from src.rag_system import IncrementalRAGSystem
 from src.database import get_db_session, Document, DocumentVersion
 
 
-configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = GenerativeModel("models/gemini-1.5-flash")
+client = OpenAI(
+    api_key=os.getenv("GROQ_API_KEY"), base_url="https://api.groq.com/openai/v1"
+)
+
 
 app = FastAPI(
     title="Incremental RAG API",
@@ -113,46 +115,135 @@ async def upload_document(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+def build_source_context(results):
+    parts = []
+    for i, r in enumerate(results, start=1):
+        excerpt = r["content"]
+        if len(excerpt) > 2000:
+            excerpt = excerpt[:2000] + "..."
+        parts.append(f"[Source {i}]\n{excerpt}")
+    return "\n\n".join(parts)
+
+
 @app.post("/api/query/generate")
 async def query_with_llm(query_request: QueryRequest):
+    question = query_request.question.strip()
+
+    if len(question) < 3:
+        return {
+            "question": question,
+            "not_found": True,
+            "answer": "",
+            "error": "Question too short (minimum 3 characters)",
+            "sources": [],
+        }
+
     results = rag_system.query(
-        question=query_request.question, version_id=query_request.version_id, k=5
+        question=question,
+        version_id=query_request.version_id,
+        k=query_request.k,
     )
 
     if not results:
         return {
-            "question": query_request.question,
-            "answer": "Not found in the document.",
+            "question": question,
+            "not_found": True,
+            "answer": "",
+            "reason": "No relevant content found in document",
             "sources": [],
         }
 
-    context = "\n\n".join(
-        f"[Source {i+1}]\n{r['content']}" for i, r in enumerate(results)
-    )
+    top_score = results[0]["similarity_score"]
 
-    prompt = f"""
-You are a document Q&A assistant.
+    if top_score < 0.3:
+        return {
+            "question": question,
+            "not_found": True,
+            "answer": "",
+            "reason": "Question doesn't match document content",
+            "suggestion": "Try asking about topics related to the document",
+            "top_score": round(top_score, 3),
+            "sources": [],
+        }
 
-Answer ONLY using the provided context.
-If the answer is not present, say "Not found in the document."
-Do not use external knowledge.
+    if top_score > 0.6:
+        filtered = [r for r in results if r["similarity_score"] > 0.5][:3]
+    elif top_score > 0.45:
+        filtered = [r for r in results if r["similarity_score"] > 0.4][:2]
+    else:
+        filtered = results[:1]  # Use only best match
 
-Context:
+    context = build_source_context(filtered)
+    avg_sim = sum(r["similarity_score"] for r in filtered) / len(filtered)
+
+    system_msg = """You are a helpful document Q&A assistant.
+
+IMPORTANT RULES:
+1. Answer using ONLY the provided context
+2. If context is relevant, provide an answer even if partial
+3. Only return not_found=true if context is COMPLETELY unrelated
+4. For general questions (like "policy" or "document"), summarize key points
+
+Response format:
+{
+  "not_found": false,
+  "answer": "Your answer here",
+  "confidence": "high|medium|low"
+}
+
+Only use not_found=true if truly nothing relevant exists."""
+
+    user_prompt = f"""
+Context (avg similarity: {avg_sim:.2f}):
 {context}
 
-Question:
-{query_request.question}
+Question: {question}
 
-Answer:
-"""
+Provide a helpful answer based on the context. If the question is general, summarize the main points."""
 
-    response = model.generate_content(prompt)
+    resp = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": user_prompt},
+        ],
+        temperature=0.1,
+        max_tokens=800,
+    )
 
-    return {
-        "question": query_request.question,
-        "answer": response.text.strip(),
-        "sources": results,
-    }
+    text = resp.choices[0].message.content.strip()
+
+    try:
+        j = json.loads(text)
+    except Exception:
+        start = text.find("{")
+        end = text.rfind("}")
+        if start != -1 and end != -1:
+            try:
+                j = json.loads(text[start : end + 1])
+            except:
+                j = {
+                    "not_found": False,
+                    "answer": text,
+                    "confidence": "low",
+                    "note": "Response format was non-standard",
+                }
+        else:
+            raise HTTPException(status_code=500, detail="LLM response parsing failed")
+
+    j["sources"] = filtered
+    j["question"] = question
+    j["avg_similarity"] = round(avg_sim, 3)
+
+    if "confidence" not in j:
+        if avg_sim > 0.6:
+            j["confidence"] = "high"
+        elif avg_sim > 0.45:
+            j["confidence"] = "medium"
+        else:
+            j["confidence"] = "low"
+
+    return j
 
 
 @app.get("/api/documents")

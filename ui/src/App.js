@@ -17,7 +17,7 @@ function App() {
   const [createModal, setCreateModal] = useState(
     documents.length === 0 ? true : false,
   );
-  const [selectedDocFile, setSeletedDocFile] = useState(0);
+  const [selectedDocFile, setSeletedDocFile] = useState(null);
 
   const selectedDocId = documents?.[selected];
   useEffect(() => {
@@ -29,8 +29,12 @@ function App() {
     setDocFilesLoading(true);
     axios
       .get(`http://localhost:8000/api/documents/${selectedDocId}/versions`)
-      .then(({ data }) => setDocFiles(data))
-      .catch(() => {})
+      .then(({ data }) => {
+        setDocFiles(data);
+      })
+      .catch(() => {
+        setSeletedDocFile(null);
+      })
       .finally(() => setDocFilesLoading(false));
   }, [selectedDocId]);
 
@@ -43,6 +47,10 @@ function App() {
     }
     return 0;
   };
+
+  useEffect(() => {
+    setSeletedDocFile(docFiles.length > 0 ? docFiles.length : null);
+  }, [docFiles]);
 
   return (
     <div className="App">
@@ -60,7 +68,11 @@ function App() {
           selected={selected}
           docFilesLoading={docFilesLoading}
         />
-        <Query docFiles={docFiles} setSeletedDocFile={setSeletedDocFile} />
+        <Query
+          docFiles={docFiles}
+          setSeletedDocFile={setSeletedDocFile}
+          selectedDocFile={selectedDocFile}
+        />
         <Diff />
       </div>
       {createModal && (

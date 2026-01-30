@@ -285,8 +285,10 @@ nav button.add-btn svg {
   color: #fff;
   border-radius: 5px;
   border: none;
-  padding: 10px 14px;
-  margin: 20px 0 0 auto;
+  padding: 10px;
+  width: 100px;
+  height: 35px;
+  margin: 5px 0 0 auto;
   display: block;
   font-size: 14px;
   cursor: pointer;
@@ -639,4 +641,39 @@ nav button.add-btn svg {
 
 .query-header {
   height: 55px;
+}
+
+.error-container {
+  height: 30px;
+  padding-top: 4px;
+}
+
+.error-container p {
+  font-size: 13px;
+  color: red;
+  margin-left: 4px;
+}
+
+.query-response .question {
+  color: #222222;
+  font-size: 15px;
+  font-weight: 400;
+  text-transform: capitalize;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+}
+
+.query-response .question svg {
+  font-size: 12px;
+}
+
+.query-response-wrapper {
+  margin-top: 30px;
+}
+
+.query-response .not-found {
+  font-size: 13px;
+  color: #646464;
 }

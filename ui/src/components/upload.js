@@ -149,7 +149,7 @@ function UploadModal({
   return (
     <ReactFocusLock>
       <div className="upload-modal-wrapper">
-        <button className="close" onClick={close}>
+        <button className="close" onClick={close} disabled={loading}>
           <IoIosClose />
         </button>
         <div className="upload-modal">
@@ -166,7 +166,11 @@ function UploadModal({
                 "{documents[selected].replaceAll("_", " ")}"
               </span>
             </p>
-            <button className="upload-btn" onClick={uploadDocument}>
+            <button
+              className="upload-btn"
+              onClick={uploadDocument}
+              disabled={loading}
+            >
               {loading ? <span className="loader"></span> : "Upload"}
             </button>
             <p className="upload-error">{error}</p>

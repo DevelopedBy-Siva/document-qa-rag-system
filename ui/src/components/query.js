@@ -3,6 +3,9 @@ import { useState } from "react";
 import { MdOutlineQuestionAnswer } from "react-icons/md";
 import { TypeAnimation } from "react-type-animation";
 import { FaArrowRight } from "react-icons/fa6";
+import { TiTick } from "react-icons/ti";
+import { IoIosClose } from "react-icons/io";
+import FocusLock from "react-focus-lock";
 
 export default function Query({
   docFiles,
@@ -10,21 +13,22 @@ export default function Query({
   setSeletedDocFile,
 }) {
   const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [result, setResult] = useState(null);
+  const [queryLoading, setQueryLoading] = useState(false);
+  const [queryError, setQueryError] = useState(null);
+  const [queryResult, setQueryResult] = useState(null);
+  const [typingDone, setTypingDone] = useState(false);
 
   function search() {
     if (selectedDocFile === null) {
-      setError("Upload a document");
+      setQueryError("Upload a document");
       return;
     }
 
     const value = query.trim().toLowerCase();
     if (value.length === 0) return;
 
-    setError(null);
-    setLoading(true);
+    setQueryError(null);
+    setQueryLoading(true);
 
     axios
       .post("http://localhost:8000/api/query/generate", {
@@ -34,12 +38,13 @@ export default function Query({
       })
       .then(({ data }) => {
         setQuery("");
-        setResult(data);
+        setTypingDone(false);
+        setQueryResult(data);
       })
       .catch(() => {
-        setError("Something went wrong. Try again.");
+        setQueryError("Something went wrong. Try again.");
       })
-      .finally(() => setLoading(false));
+      .finally(() => setQueryLoading(false));
   }
 
   return (
@@ -64,29 +69,49 @@ export default function Query({
           placeholder="Ask a question about the selected snapshot..."
         />
         <div className="error-container">
-          <p>{error}</p>
+          <p>{queryError}</p>
         </div>
-        <button onClick={search} className="search-btn">
-          {loading ? <span className="loader"></span> : "Search"}
+        <button onClick={search} disabled={queryLoading} className="search-btn">
+          {queryLoading ? <span className="loader"></span> : "Search"}
         </button>
         <div className="block" />
       </div>
       <div className="overflow-wrapper">
-        {result && (
+        {queryResult && (
           <div className="query-response">
             <h3 className="question">
-              <FaArrowRight /> {result.question}
+              <FaArrowRight /> {queryResult.question}
             </h3>
             <div className="block" />
             <div className="query-response-wrapper">
-              {result.not_found ? (
-                result.error ? (
-                  <TypeEffect value={result.error} />
+              {queryResult.not_found ? (
+                queryResult.error ? (
+                  <TypeEffect value={queryResult.error} />
                 ) : (
                   <TypeEffect value="I couldn’t find an answer in the selected document/version." />
                 )
               ) : (
-                <div></div>
+                <div className="answer">
+                  <TypeEffect
+                    value={queryResult.answer}
+                    onDone={() => setTimeout(() => setTypingDone(true), 500)}
+                  />
+                  {typingDone && queryResult.sources && (
+                    <>
+                      <div className="block" />
+                      <div className="source">
+                        <h4>
+                          <FaArrowRight /> Sources
+                        </h4>
+                        <div className="source-wrapper">
+                          {queryResult.sources.map((item, idx) => (
+                            <SourceResult item={item} key={idx} />
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -108,7 +133,7 @@ function Dropdown({ docFiles, setSeletedDocFile }) {
         const versionId = item.version_number;
         const version = `v${versionId}`;
         return (
-          <option key={idx} value={idx}>
+          <option key={idx} value={versionId}>
             {version}
           </option>
         );
@@ -117,16 +142,81 @@ function Dropdown({ docFiles, setSeletedDocFile }) {
   );
 }
 
-function TypeEffect({ value }) {
+function TypeEffect({ value, onDone }) {
   return (
-    <span className="not-found">
+    <span className="query-answer-txt">
       <TypeAnimation
         key={value}
-        sequence={[value]}
+        sequence={[
+          value,
+          () => {
+            onDone?.();
+          },
+        ]}
         wrapper="span"
         speed={70}
         repeat={0}
       />
     </span>
+  );
+}
+
+function ShowModal({ setShowModal, item }) {
+  const close = () => {
+    setShowModal(false);
+  };
+
+  return (
+    <FocusLock>
+      <div className="show-modal-wrapper">
+        <button className="close" onClick={close}>
+          <IoIosClose />
+        </button>
+
+        <div className="show-modal">
+          <h2>
+            <div className="metadata">
+              <span>
+                <TiTick />
+              </span>
+              <span>{item.document_name}</span>
+              <span>-</span>
+              <span>v{item.version}</span>
+              <span>({Math.round(item.similarity_score * 100)}%)</span>
+            </div>
+          </h2>
+          <div className="show-content">
+            <p>{item.content}</p>
+          </div>
+        </div>
+      </div>
+    </FocusLock>
+  );
+}
+
+function SourceResult({ item }) {
+  const [showModal, setShowModal] = useState(false);
+
+  return (
+    <>
+      <div className="source-conatiner">
+        <div className="metadata">
+          <span>
+            <TiTick />
+          </span>
+          <span>{item.document_name}</span>
+          <span>-</span>
+          <span>v{item.version}</span>
+          <span>({Math.round(item.similarity_score * 100)}%)</span>
+          <div className="source-btn">
+            <button onClick={() => setShowModal(true)}>View Excerpt</button>
+          </div>
+        </div>
+        <div className="source-content">
+          <p>{item.content}</p>
+        </div>
+      </div>
+      {showModal && <ShowModal setShowModal={setShowModal} item={item} />}
+    </>
   );
 }

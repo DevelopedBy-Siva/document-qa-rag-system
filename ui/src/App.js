@@ -73,7 +73,7 @@ function App() {
           setSeletedDocFile={setSeletedDocFile}
           selectedDocFile={selectedDocFile}
         />
-        <Diff />
+        <Diff docFiles={docFiles} />
       </div>
       {createModal && (
         <DocumentSelectModal

@@ -3,7 +3,7 @@ import { TbArrowsDiff } from "react-icons/tb";
 
 import DiffModal from "./diff_modal";
 
-export default function Diff() {
+export default function Diff({ docFiles }) {
   const [showModal, setShowModal] = useState(false);
 
   return (
@@ -12,9 +12,20 @@ export default function Diff() {
         <TbArrowsDiff /> Version Differences
       </h2>
       <div className="overflow-wrapper">
-        <button className="show-diff-btn" onClick={() => setShowModal(true)}>
-          Show diff
-        </button>
+        {docFiles.length === 0 ? (
+          <p className="snapshot-msg">No snapshots found.</p>
+        ) : docFiles.length === 1 ? (
+          <p className="snapshot-msg">
+            Only one snapshot found. Add more snapshots to generate a diff.
+          </p>
+        ) : (
+          <div></div>
+        )}
+        {docFiles.length > 1 && (
+          <button className="show-diff-btn" onClick={() => setShowModal(true)}>
+            Show diff
+          </button>
+        )}
       </div>
       {showModal && <DiffModal setShowModal={setShowModal} />}
     </div>

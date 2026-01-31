@@ -265,6 +265,7 @@ nav button.add-btn svg {
   color: #646464;
   cursor: pointer;
   text-transform: capitalize;
+  background: #fff;
 }
 
 .query #search {
@@ -888,4 +889,11 @@ button:disabled {
 .source-wrapper .show-modal .metadata span:nth-child(4),
 .source-wrapper .show-modal .metadata span:nth-child(5) {
   font-size: 13px;
+}
+
+.snapshot-msg {
+  font-size: 12px;
+  color: #646464;
+  font-weight: 300;
+  line-height: 21px;
 }

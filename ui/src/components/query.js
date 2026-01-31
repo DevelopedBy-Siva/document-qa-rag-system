@@ -101,7 +101,7 @@ export default function Query({
                       <div className="block" />
                       <div className="source">
                         <h4>
-                          <FaArrowRight /> Sources
+                          <FaArrowRight /> Evidence
                         </h4>
                         <div className="source-wrapper">
                           {queryResult.sources.map((item, idx) => (

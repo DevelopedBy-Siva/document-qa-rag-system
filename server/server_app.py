@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional
 import shutil
 import os
 from pathlib import Path
@@ -13,7 +13,7 @@ import json
 sys.path.insert(0, str(Path(__file__).parent))
 
 from src.rag_system import IncrementalRAGSystem
-from src.database import get_db_session, Document, DocumentVersion
+from src.database import get_db_session, DocumentVersion, DocumentChunk
 
 
 client = OpenAI(
@@ -63,15 +63,6 @@ async def root():
         "status": "online",
         "message": "Document Q&A RAG API is running",
     }
-
-
-@app.get("/api/stats")
-async def get_stats():
-    try:
-        stats = rag_system.get_stats()
-        return JSONResponse(content={"success": True, "data": stats})
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/api/documents/upload")
@@ -270,43 +261,117 @@ async def get_document_versions(doc_name: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/documents/{doc_name}/versions")
-async def get_document_versions(doc_name: str):
+@app.get("/api/documents/{doc_name}/versions/{version_id}/diff")
+async def get_version_diff(doc_name: str, version_id: int):
     try:
-        versions = rag_system.get_document_versions(doc_name)
+        session = get_db_session()
 
-        if not versions:
-            raise HTTPException(
-                status_code=404, detail=f"Document '{doc_name}' not found"
+        try:
+            current_version = (
+                session.query(DocumentVersion).filter_by(id=version_id).first()
             )
 
-        result = [
-            {**v, "label": f"{doc_name} - v{v['version_number']}"} for v in versions
-        ]
+            if not current_version:
+                raise HTTPException(status_code=404, detail="Version not found")
 
-        return JSONResponse(content={"success": True, "data": result})
+            prev_version = (
+                session.query(DocumentVersion)
+                .filter_by(
+                    document_id=current_version.document_id,
+                    version_number=current_version.version_number - 1,
+                )
+                .first()
+            )
+
+            if not prev_version:
+                return {
+                    "success": True,
+                    "message": "This is the first version",
+                    "is_first_version": True,
+                    "current_version": current_version.version_number,
+                }
+
+            current_chunks = [chunk.content for chunk in current_version.chunks]
+            prev_chunks = [chunk.content for chunk in prev_version.chunks]
+
+            current_text = "\n\n".join(current_chunks)
+            prev_text = "\n\n".join(prev_chunks)
+
+            stats = {
+                "chunks_added": len(current_chunks) - len(prev_chunks),
+                "current_chunks": len(current_chunks),
+                "previous_chunks": len(prev_chunks),
+                "current_version": current_version.version_number,
+                "previous_version": prev_version.version_number,
+            }
+
+            system_msg = """You are analyzing document changes. 
+            Identify what changed between two versions.
+            Be specific and concise."""
+
+            user_prompt = f"""
+Previous Version:
+{prev_text[:3000]}...
+
+Current Version:
+{current_text[:3000]}...
+
+Analyze the changes and return JSON:
+{{
+  "summary": "Brief overview of changes",
+  "key_changes": [
+    {{"type": "added|modified|removed", "description": "what changed"}},
+  ],
+  "impact": "low|medium|high"
+}}
+"""
+
+            resp = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": system_msg},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=0.1,
+                max_tokens=500,
+            )
+
+            diff_analysis = json.loads(resp.choices[0].message.content)
+
+            return {
+                "success": True,
+                "is_first_version": False,
+                "stats": stats,
+                "analysis": diff_analysis,
+                "version_info": {
+                    "current": {
+                        "id": current_version.id,
+                        "number": current_version.version_number,
+                        "date": current_version.upload_date.isoformat(),
+                    },
+                    "previous": {
+                        "id": prev_version.id,
+                        "number": prev_version.version_number,
+                        "date": prev_version.upload_date.isoformat(),
+                    },
+                },
+            }
+
+        finally:
+            session.close()
+
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/api/compare")
-async def compare_versions(comparison: ComparisonRequest):
+@app.post("/api/compare/detailed")
+async def compare_versions_detailed(comparison: ComparisonRequest):
+
     try:
-        results_v1 = rag_system.query(
-            question=comparison.question,
-            version_id=comparison.version_id_1,
-            k=comparison.k,
-        )
-
-        results_v2 = rag_system.query(
-            question=comparison.question,
-            version_id=comparison.version_id_2,
-            k=comparison.k,
-        )
-
         session = get_db_session()
+
         try:
             v1 = (
                 session.query(DocumentVersion)
@@ -322,48 +387,118 @@ async def compare_versions(comparison: ComparisonRequest):
             if not v1 or not v2:
                 raise HTTPException(status_code=404, detail="Version not found")
 
-            version_info = {
-                "version_1": {
-                    "id": v1.id,
-                    "number": v1.version_number,
-                    "date": v1.upload_date.isoformat(),
+            v1_chunks = [chunk.content for chunk in v1.chunks]
+            v2_chunks = [chunk.content for chunk in v2.chunks]
+
+            v1_text = "\n\n".join(v1_chunks)
+            v2_text = "\n\n".join(v2_chunks)
+
+            if comparison.question:
+                results_v1 = rag_system.query(
+                    question=comparison.question,
+                    version_id=comparison.version_id_1,
+                    k=comparison.k,
+                )
+
+                results_v2 = rag_system.query(
+                    question=comparison.question,
+                    version_id=comparison.version_id_2,
+                    k=comparison.k,
+                )
+
+                context_v1 = "\n".join([r["content"] for r in results_v1[:2]])
+                context_v2 = "\n".join([r["content"] for r in results_v2[:2]])
+
+                system_msg = """Compare how two document versions answer the same question.
+                Identify specific differences."""
+
+                user_prompt = f"""
+Question: {comparison.question}
+
+Version {v1.version_number} says:
+{context_v1}
+
+Version {v2.version_number} says:
+{context_v2}
+
+Return JSON:
+{{
+  "answer_v1": "Answer from version 1",
+  "answer_v2": "Answer from version 2",
+  "changed": true/false,
+  "differences": [
+    {{"aspect": "what changed", "v1": "old value", "v2": "new value"}}
+  ],
+  "summary": "Overall comparison"
+}}
+"""
+            else:
+                system_msg = """Compare two document versions.
+                Identify all significant changes."""
+
+                user_prompt = f"""
+Version {v1.version_number}:
+{v1_text[:4000]}...
+
+Version {v2.version_number}:
+{v2_text[:4000]}...
+
+Return JSON:
+{{
+  "overall_change": "high|medium|low",
+  "summary": "What changed overall",
+  "sections_changed": ["section 1", "section 2"],
+  "key_differences": [
+    {{"category": "category", "description": "what changed", "type": "added|modified|removed"}}
+  ],
+  "recommendations": "Who should review these changes"
+}}
+"""
+
+            resp = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": system_msg},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=0.1,
+                max_tokens=1000,
+            )
+
+            analysis = json.loads(resp.choices[0].message.content)
+
+            return {
+                "success": True,
+                "question": comparison.question if comparison.question else None,
+                "version_info": {
+                    "version_1": {
+                        "id": v1.id,
+                        "number": v1.version_number,
+                        "date": v1.upload_date.isoformat(),
+                        "chunks": len(v1_chunks),
+                    },
+                    "version_2": {
+                        "id": v2.id,
+                        "number": v2.version_number,
+                        "date": v2.upload_date.isoformat(),
+                        "chunks": len(v2_chunks),
+                    },
                 },
-                "version_2": {
-                    "id": v2.id,
-                    "number": v2.version_number,
-                    "date": v2.upload_date.isoformat(),
+                "analysis": analysis,
+                "stats": {
+                    "chunks_difference": len(v2_chunks) - len(v1_chunks),
+                    "text_length_v1": len(v1_text),
+                    "text_length_v2": len(v2_text),
                 },
             }
+
         finally:
             session.close()
 
-        differences = []
-        if results_v1 and results_v2:
-            top_v1 = results_v1[0]["content"]
-            top_v2 = results_v2[0]["content"]
-
-            if top_v1 != top_v2:
-                differences.append(
-                    {
-                        "type": "content_changed",
-                        "description": "Content differs between versions",
-                    }
-                )
-
-        return JSONResponse(
-            content={
-                "success": True,
-                "data": {
-                    "question": comparison.question,
-                    "version_info": version_info,
-                    "results_v1": results_v1,
-                    "results_v2": results_v2,
-                    "differences": differences,
-                },
-            }
-        )
     except HTTPException:
         raise
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=500, detail="Failed to parse LLM response")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -11,6 +11,44 @@ import { API_URL } from "./config";
 import { MdError } from "react-icons/md";
 
 function App() {
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [startError, setStartError] = useState(false);
+
+  useEffect(() => {
+    axios
+      .get(`${API_URL}`)
+      .catch(() => setStartError(true))
+      .finally(() => setInitialLoading(false));
+  }, []);
+
+  return (
+    <div className="App">
+      {initialLoading || startError ? (
+        <div className="app-loader">
+          <h6>{!startError ? "Initializing the app" : "Failed to start"}</h6>
+          <p>
+            {!startError
+              ? "This app is deployed on a free instance, so the initial startup may take a little time. Please wait."
+              : "Something went wrong. Try again later."}
+          </p>
+          {!startError ? (
+            <span className="loader"></span>
+          ) : (
+            <span className="error">
+              <MdError />
+            </span>
+          )}
+        </div>
+      ) : (
+        <Wrapper />
+      )}
+    </div>
+  );
+}
+
+export default App;
+
+function Wrapper() {
   const [documents, setDocuments] = useState(["work_policy"]);
   const [docFiles, setDocFiles] = useState([]);
   const [docFilesLoading, setDocFilesLoading] = useState(true);
@@ -20,8 +58,6 @@ function App() {
     documents.length === 0 ? true : false,
   );
   const [selectedDocFile, setSeletedDocFile] = useState(null);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [startError, setStartError] = useState(false);
 
   const selectedDocId = documents?.[selected];
   useEffect(() => {
@@ -56,68 +92,39 @@ function App() {
     setSeletedDocFile(docFiles.length > 0 ? docFiles.length : null);
   }, [docFiles]);
 
-  useEffect(() => {
-    axios
-      .get(`${API_URL}`)
-      .catch(() => setStartError(true))
-      .finally(() => setInitialLoading(false));
-  }, []);
-
   return (
-    <div className="App">
-      {initialLoading || startError ? (
-        <div className="app-loader">
-          <h6>{!startError ? "Initializing the app" : "Failed to start"}</h6>
-          <p>
-            {!startError
-              ? "This app is deployed on a free instance, so the initial startup may take a little time. Please wait."
-              : "Something went wrong. Try again later."}
-          </p>
-          {!startError ? (
-            <span className="loader"></span>
-          ) : (
-            <span className="error">
-              <MdError />
-            </span>
-          )}
-        </div>
-      ) : (
-        <>
-          <Nav
-            documents={documents}
-            selected={selected}
-            setSelected={setSelected}
-            setCreateModal={setCreateModal}
-          />
-          <div className="wrapper">
-            <Upload
-              docFiles={docFiles}
-              setDocFiles={setDocFiles}
-              documents={documents}
-              selected={selected}
-              docFilesLoading={docFilesLoading}
-            />
-            <Query
-              docFiles={docFiles}
-              setSeletedDocFile={setSeletedDocFile}
-              selectedDocFile={selectedDocFile}
-            />
-            <Diff docFiles={docFiles} />
-          </div>
-          {createModal && (
-            <DocumentSelectModal
-              addDocumentFolder={addDocumentFolder}
-              setCreateModal={setCreateModal}
-              documents={documents}
-            />
-          )}
-        </>
+    <>
+      <Nav
+        documents={documents}
+        selected={selected}
+        setSelected={setSelected}
+        setCreateModal={setCreateModal}
+      />
+      <div className="wrapper">
+        <Upload
+          docFiles={docFiles}
+          setDocFiles={setDocFiles}
+          documents={documents}
+          selected={selected}
+          docFilesLoading={docFilesLoading}
+        />
+        <Query
+          docFiles={docFiles}
+          setSeletedDocFile={setSeletedDocFile}
+          selectedDocFile={selectedDocFile}
+        />
+        <Diff docFiles={docFiles} />
+      </div>
+      {createModal && (
+        <DocumentSelectModal
+          addDocumentFolder={addDocumentFolder}
+          setCreateModal={setCreateModal}
+          documents={documents}
+        />
       )}
-    </div>
+    </>
   );
 }
-
-export default App;
 
 function DocumentSelectModal({ addDocumentFolder, setCreateModal, documents }) {
   const [name, setName] = useState("");

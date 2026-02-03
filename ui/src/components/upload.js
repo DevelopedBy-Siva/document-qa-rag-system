@@ -7,6 +7,7 @@ import ReactFocusLock from "react-focus-lock";
 import { FaFolder } from "react-icons/fa";
 import axios from "axios";
 import { GoDotFill } from "react-icons/go";
+import { API_URL } from "../config";
 
 const fileTypes = ["PDF", "TXT", "DOCX"];
 
@@ -126,7 +127,7 @@ function UploadModal({
     setLoading(true);
     setError("");
     await axios
-      .post("http://localhost:8000/api/documents/upload", formData, {
+      .post(`${API_URL}/api/documents/upload`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

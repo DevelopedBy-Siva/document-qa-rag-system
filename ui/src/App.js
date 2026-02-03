@@ -7,6 +7,7 @@ import ReactFocusLock from "react-focus-lock";
 import { IoIosClose } from "react-icons/io";
 import { FaFolderOpen } from "react-icons/fa6";
 import axios from "axios";
+import { API_URL } from "./config";
 
 function App() {
   const [documents, setDocuments] = useState(["work_policy"]);
@@ -28,7 +29,7 @@ function App() {
     setDocFiles([]);
     setDocFilesLoading(true);
     axios
-      .get(`http://localhost:8000/api/documents/${selectedDocId}/versions`)
+      .get(`${API_URL}/api/documents/${selectedDocId}/versions`)
       .then(({ data }) => {
         setDocFiles(data);
       })

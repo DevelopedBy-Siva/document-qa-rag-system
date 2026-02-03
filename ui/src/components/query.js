@@ -6,6 +6,7 @@ import { FaArrowRight } from "react-icons/fa6";
 import { TiTick } from "react-icons/ti";
 import { IoIosClose } from "react-icons/io";
 import FocusLock from "react-focus-lock";
+import { API_URL } from "../config";
 
 export default function Query({
   docFiles,
@@ -31,7 +32,7 @@ export default function Query({
     setQueryLoading(true);
 
     axios
-      .post("http://localhost:8000/api/query/generate", {
+      .post(`${API_URL}/api/query/generate`, {
         question: query,
         version_id: selectedDocFile,
         k: 5,

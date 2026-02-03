@@ -4,26 +4,28 @@ A RAG system with built-in version control enabling semantic search and natural 
 
 [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://document-qa-rag-system.vercel.app/)
 
+![Project UI](./ui/public/image.jpeg)
+
 ## Overview
 
 Solves document version tracking by implementing version-aware semantic search. Unlike traditional RAG systems that only support current versions, this system maintains complete document history with temporal querying capabilities.
 
 ### Key Features
 
-* **Version Control:** Query any historical version ("What did v3 say about remote work?")
-* **Temporal Comparison:** Compare any two versions with automated change detection
-* **Incremental Indexing:** O(1) version additions without index rebuilds
-* **LLM Integration:** Natural language answers via Llama 3.3-70B (Groq API)
-* **Change Detection:** Automatic classification of modified/added/removed content
+- **Version Control:** Query any historical version ("What did v3 say about remote work?")
+- **Temporal Comparison:** Compare any two versions with automated change detection
+- **Incremental Indexing:** O(1) version additions without index rebuilds
+- **LLM Integration:** Natural language answers via Llama 3.3-70B (Groq API)
+- **Change Detection:** Automatic classification of modified/added/removed content
 
 ---
 
 ## Tech Stack
 
-* **Backend:** FastAPI, FAISS, Sentence Transformers, SQLAlchemy, Groq API
-* **Frontend:** React, Tailwind CSS
-* **Deployment:** Render (backend), Vercel (frontend)
-* **Containerization:** Docker
+- **Backend:** FastAPI, FAISS, Sentence Transformers, SQLAlchemy, Groq API
+- **Frontend:** React, Tailwind CSS
+- **Deployment:** Render (backend), Vercel (frontend)
+- **Containerization:** Docker
 
 ---
 
@@ -136,23 +138,23 @@ GET /api/documents/{doc_name}/versions
 
 ### 1. Document Upload
 
-* Extract text (PyPDF, python-docx)
-* Chunk text (512 chars, 50 overlap)
-* Generate embeddings (Sentence Transformers)
-* Store in FAISS (incremental add) + SQLite (metadata)
+- Extract text (PyPDF, python-docx)
+- Chunk text (512 chars, 50 overlap)
+- Generate embeddings (Sentence Transformers)
+- Store in FAISS (incremental add) + SQLite (metadata)
 
 ### 2. Query
 
-* Generate question embedding
-* FAISS similarity search (filter by version_id)
-* LLM generates answer from retrieved chunks
+- Generate question embedding
+- FAISS similarity search (filter by version_id)
+- LLM generates answer from retrieved chunks
 
 ### 3. Version Comparison
 
-* Query both versions
-* Calculate chunk-level cosine similarity
-* Classify changes (modified/added/removed)
-* LLM summarizes differences
+- Query both versions
+- Calculate chunk-level cosine similarity
+- Classify changes (modified/added/removed)
+- LLM summarizes differences
 
 ---
 
@@ -198,9 +200,9 @@ Framework: React
 
 ## Use Cases
 
-* **Policy Tracking:** Track changes in HR policies, contracts, regulations
-* **Compliance:** Audit document revisions with searchable history
-* **Legal:** Compare contract versions, track amendments
-* **Knowledge Management:** Maintain evolving documentation with temporal queries
+- **Policy Tracking:** Track changes in HR policies, contracts, regulations
+- **Compliance:** Audit document revisions with searchable history
+- **Legal:** Compare contract versions, track amendments
+- **Knowledge Management:** Maintain evolving documentation with temporal queries
 
 ---

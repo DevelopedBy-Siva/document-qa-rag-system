@@ -38,7 +38,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-rag_system = IncrementalRAGSystem()
+rag_system = None
+
+
+@app.on_event("startup")
+def startup():
+    global rag_system
+    rag_system = IncrementalRAGSystem()
+
 
 TEMP_UPLOAD_DIR = "./temp_uploads"
 Path(TEMP_UPLOAD_DIR).mkdir(exist_ok=True)

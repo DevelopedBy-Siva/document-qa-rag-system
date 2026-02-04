@@ -26,7 +26,7 @@ Solves document version tracking by implementing version-aware semantic search. 
 
 - **Backend:** FastAPI, FAISS, Sentence Transformers, SQLAlchemy, Groq API
 - **Frontend:** React, Tailwind CSS
-- **Deployment:** Render (backend), Vercel (frontend)
+- **Deployment:** Hugging Face Spaces (backend API), Vercel (frontend)
 - **Containerization:** Docker
 
 ---
@@ -36,7 +36,7 @@ Solves document version tracking by implementing version-aware semantic search. 
 ```
 React Frontend (Vercel)
     ↓ HTTPS
-FastAPI Backend (Render / Docker)
+FastAPI Backend (Hugging Face Spaces / Docker)
     ↓
 [SQLite] [FAISS Index] [Groq LLM]
 ```
@@ -183,14 +183,20 @@ GET /api/documents/{doc_name}/versions
 
 ## Deployment
 
-### Render (Backend)
+### Hugging Face Spaces (Backend)
 
-```
-Environment: Docker
-Dockerfile: server/Dockerfile
-Env: GROQ_API_KEY
-Port: $PORT
-```
+This project is deployed on **Hugging Face Spaces** using the **Docker Space SDK** on the free CPU tier.
+
+**Space URL:** https://technophyle-doc-qa.hf.space/
+
+**Deployment details**
+- **Space SDK:** Docker
+- **Runtime:** FastAPI (Uvicorn)
+- **Containerization:** Docker
+- **Hardware:** Free CPU
+
+**Required environment variables:** GROQ_API_KEY
+
 
 ### Vercel (Frontend)
 

@@ -2,7 +2,7 @@ import { IoIosClose } from "react-icons/io";
 import { TbArrowsDiff } from "react-icons/tb";
 import FocusLock from "react-focus-lock";
 
-export default function DiffModal({ setShowModal }) {
+export default function DiffModal({ setShowModal, version }) {
   const close = () => {
     setShowModal(false);
   };
@@ -16,7 +16,7 @@ export default function DiffModal({ setShowModal }) {
 
         <div className="diff-modal">
           <h2>
-            <TbArrowsDiff /> Version Differences
+            <TbArrowsDiff /> What’s New in Version v{version}
           </h2>
           <div className="diff-content"></div>
         </div>

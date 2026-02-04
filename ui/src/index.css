@@ -940,3 +940,21 @@ button:disabled {
   line-height: 21px;
   text-align: center;
 }
+
+.diff-nutshell h6 {
+  font-weight: 400;
+  font-size: 14px;
+  text-align: left;
+  color: #1d61ff;
+}
+
+.diff-nutshell h6 b {
+  font-weight: 600;
+}
+
+.diff-nutshell p {
+  margin: 15px 0;
+  color: #646464;
+  font-weight: 300;
+  font-size: 13px;
+}

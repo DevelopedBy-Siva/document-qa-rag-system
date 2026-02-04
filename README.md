@@ -4,7 +4,7 @@ A RAG system with built-in version control enabling semantic search and natural 
 
 [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://document-qa-rag-system.vercel.app/)
 
-![Project UI](./ui/public/image.jpeg)
+![Project UI](./ui/public/imgs/1.png)
 
 ## Overview
 

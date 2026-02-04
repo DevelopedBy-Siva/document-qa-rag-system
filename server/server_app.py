@@ -392,8 +392,9 @@ async def get_version_diff(doc_name: str, version_id: int):
             }
 
             system_msg = """You are analyzing document changes. 
-            Identify what changed between two versions.
-            Be specific and concise."""
+Identify what changed between two versions.
+Be specific and concise.
+You must respond with valid JSON only."""
 
             user_prompt = f"""
 Previous Version:
@@ -402,7 +403,7 @@ Previous Version:
 Current Version:
 {current_text[:3000]}...
 
-Analyze the changes and return JSON:
+Analyze the changes and return valid JSON in this format:
 {{
   "summary": "Brief overview of changes",
   "key_changes": [
@@ -411,18 +412,47 @@ Analyze the changes and return JSON:
   "impact": "low|medium|high"
 }}
 """
+            try:
+                resp = client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=[
+                        {"role": "system", "content": system_msg},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    temperature=0.1,
+                    max_tokens=500,
+                    response_format={"type": "json_object"},  # Now this works
+                )
 
-            resp = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
-                messages=[
-                    {"role": "system", "content": system_msg},
-                    {"role": "user", "content": user_prompt},
-                ],
-                temperature=0.1,
-                max_tokens=500,
-            )
+                llm_response = resp.choices[0].message.content.strip()
 
-            diff_analysis = json.loads(resp.choices[0].message.content)
+                try:
+                    diff_analysis = json.loads(llm_response)
+                except json.JSONDecodeError as e:
+                    print(f"Failed to parse LLM response: {llm_response}")
+                    diff_analysis = {
+                        "summary": f"Version {current_version.version_number} has {len(current_chunks) - len(prev_chunks)} more chunks than version {prev_version.version_number}",
+                        "key_changes": [
+                            {
+                                "type": "modified",
+                                "description": f"Content updated with {abs(len(current_chunks) - len(prev_chunks))} chunk difference",
+                            }
+                        ],
+                        "impact": "medium",
+                    }
+
+            except Exception as llm_error:
+                print(f"LLM API error: {llm_error}")
+                diff_analysis = {
+                    "summary": "Unable to generate detailed analysis",
+                    "key_changes": [
+                        {
+                            "type": "modified",
+                            "description": f"{len(current_chunks)} chunks in current version vs {len(prev_chunks)} in previous",
+                        }
+                    ],
+                    "impact": "unknown",
+                }
 
             return {
                 "success": True,
@@ -448,6 +478,10 @@ Analyze the changes and return JSON:
 
     except HTTPException:
         raise
+    except json.JSONDecodeError as e:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to parse LLM response: {str(e)}"
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

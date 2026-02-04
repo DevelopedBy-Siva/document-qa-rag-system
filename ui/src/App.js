@@ -60,6 +60,7 @@ function Wrapper() {
   const [selectedDocFile, setSeletedDocFile] = useState(null);
 
   const selectedDocId = documents?.[selected];
+
   useEffect(() => {
     if (!selectedDocId) {
       setDocFiles([]);
@@ -113,7 +114,11 @@ function Wrapper() {
           setSeletedDocFile={setSeletedDocFile}
           selectedDocFile={selectedDocFile}
         />
-        <Diff docFiles={docFiles} />
+        <Diff
+          docFiles={docFiles}
+          selectedDocId={selectedDocId}
+          selectedDocFile={selectedDocFile}
+        />
       </div>
       {createModal && (
         <DocumentSelectModal

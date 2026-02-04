@@ -2,7 +2,7 @@
 
 A RAG system with built-in version control enabling semantic search and natural language Q&A across document revision history.
 
-[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://document-qa-rag-system.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://www.sivasanker.com/projects/document-qa-rag)
 
 ![Project UI](./ui/public/imgs/1.jpeg)
 

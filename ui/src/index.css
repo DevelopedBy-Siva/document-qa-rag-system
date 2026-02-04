@@ -178,8 +178,8 @@ nav button.add-btn svg {
   transform: translate(-50%, -50%);
   width: 95vw;
   max-width: 700px;
-  height: calc(100vh - 40px);
-  max-height: 500px;
+  height: auto;
+  max-height: min(500px, calc(100vh - 40px));
   background-color: #fff;
   border-radius: 10px;
   padding: 25px 0;
@@ -193,7 +193,31 @@ nav button.add-btn svg {
   min-height: 0;
   flex: 1;
   overflow: auto;
-  padding: 0 25px;
+  padding: 15px 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.diff-content .analysis-box {
+  background-color: #fff;
+  border-radius: 5px;
+  border: 1px solid rgba(247, 189, 64, 0.322);
+}
+
+.diff-content .analysis-box span {
+  font-size: 10px;
+  border-radius: 4px 4px 0 0;
+  display: block;
+  background: rgba(247, 189, 64, 0.322);
+  padding: 4px 10px;
+  font-weight: 400;
+}
+
+.diff-content .analysis-box p {
+  color: #222222;
+  line-height: 22px;
+  padding: 10px 10px;
 }
 
 .diff-modal h2 {
@@ -957,4 +981,9 @@ button:disabled {
   color: #646464;
   font-weight: 300;
   font-size: 13px;
+}
+
+.analysis-box p {
+  font-size: 12px;
+  font-weight: 300;
 }

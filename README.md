@@ -6,6 +6,8 @@ A RAG system with built-in version control enabling semantic search and natural 
 
 ![Project UI](./ui/public/imgs/1.png)
 
+![Project Diff UI](./ui/public/imgs/2.png)
+
 ## Overview
 
 Solves document version tracking by implementing version-aware semantic search. Unlike traditional RAG systems that only support current versions, this system maintains complete document history with temporal querying capabilities.

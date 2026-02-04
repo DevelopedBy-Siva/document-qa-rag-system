@@ -46,33 +46,44 @@ export default function Diff({ docFiles, selectedDocId, selectedDocFile }) {
             <h6>
               Latest version: <b>v{docFiles.length}</b>
             </h6>
-
-            <div className="diff-nutshell-content">
-              {diffData.is_first_version ? (
-                <p>{diffData.message}</p>
-              ) : (
-                diffData.analysis &&
-                diffData.analysis.summary && <p>{diffData.analysis.summary}</p>
-              )}
-            </div>
+            {diffData && (
+              <div className="diff-nutshell-content">
+                {diffData.is_first_version ? (
+                  <p>{diffData.message}</p>
+                ) : (
+                  diffData.analysis &&
+                  diffData.analysis.summary && (
+                    <p>{diffData.analysis.summary}</p>
+                  )
+                )}
+              </div>
+            )}
           </div>
         )}
 
         {docFiles.length > 1 &&
+          diffData &&
           diffData.analysis &&
           diffData.analysis.key_changes &&
           diffData.analysis.key_changes.length > 0 && (
-            <button
-              className="show-diff-btn"
-              onClick={() => setShowModal(true)}
-            >
-              Show Details
-            </button>
+            <>
+              <button
+                className="show-diff-btn"
+                onClick={() => setShowModal(true)}
+              >
+                Show Details
+              </button>
+
+              {showModal && (
+                <DiffModal
+                  version={docFiles.length}
+                  analysis={diffData.analysis.key_changes}
+                  setShowModal={setShowModal}
+                />
+              )}
+            </>
           )}
       </div>
-      {showModal && (
-        <DiffModal version={docFiles.length} setShowModal={setShowModal} />
-      )}
     </div>
   );
 }

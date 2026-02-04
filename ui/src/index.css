@@ -938,4 +938,5 @@ button:disabled {
   color: #646464;
   font-weight: 300;
   line-height: 21px;
+  text-align: center;
 }

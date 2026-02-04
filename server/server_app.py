@@ -123,6 +123,58 @@ def build_source_context(results):
     return "\n\n".join(parts)
 
 
+def extract_document_topics(chunks: list, max_topics: int = 5) -> list:
+
+    sample_text = "\n".join([c["content"] for c in chunks[:3]])
+
+    try:
+        prompt = f"""
+Extract the main topics covered in this document.
+
+Document sample:
+{sample_text[:1000]}
+
+Return JSON with main topics/sections:
+{{
+  "topics": ["Topic 1", "Topic 2", "Topic 3"]
+}}
+
+Keep topics concise (2-4 words each). Maximum {max_topics} topics.
+"""
+
+        resp = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+            max_tokens=200,
+            response_format={"type": "json_object"},
+        )
+
+        result = json.loads(resp.choices[0].message.content)
+        return result.get("topics", [])[:max_topics]
+
+    except Exception as e:
+        words = sample_text.lower().split()
+        fallback_topics = []
+        policy_keywords = [
+            "policy",
+            "work",
+            "remote",
+            "vacation",
+            "benefits",
+            "security",
+            "equipment",
+            "eligibility",
+        ]
+        for keyword in policy_keywords:
+            if keyword in words:
+                fallback_topics.append(keyword.title())
+
+        return (
+            fallback_topics[:max_topics] if fallback_topics else ["General Information"]
+        )
+
+
 @app.post("/api/query/generate")
 async def query_with_llm(query_request: QueryRequest):
     question = query_request.question.strip()
@@ -132,7 +184,7 @@ async def query_with_llm(query_request: QueryRequest):
             "question": question,
             "not_found": True,
             "answer": "",
-            "error": "Question too short (minimum 3 characters)",
+            "message": "Question too short (minimum 3 characters)",
             "sources": [],
         }
 
@@ -147,29 +199,46 @@ async def query_with_llm(query_request: QueryRequest):
             "question": question,
             "not_found": True,
             "answer": "",
-            "reason": "No relevant content found in document",
+            "message": "No content found in this document version",
+            "suggestion": "Check if you selected the correct version or try searching all versions",
             "sources": [],
         }
 
     top_score = results[0]["similarity_score"]
 
-    if top_score < 0.3:
+    if top_score < 0.35:
+        topics = extract_document_topics(results)
+
         return {
             "question": question,
             "not_found": True,
             "answer": "",
-            "reason": "Question doesn't match document content",
-            "suggestion": "Try asking about topics related to the document",
+            "message": "No direct match for your question",
+            "topics": topics,
+            "suggestions": [
+                "Try asking about specific topics listed above",
+                "Use keywords from the document",
+                (
+                    f"Example: 'What is the {topics[0].lower()}?'"
+                    if topics
+                    else "Be more specific"
+                ),
+            ],
             "top_score": round(top_score, 3),
             "sources": [],
         }
 
-    if top_score > 0.6:
+    force_low_confidence = False
+
+    if top_score < 0.4:
+        filtered = results[:3]
+        force_low_confidence = True
+    elif top_score > 0.6:
         filtered = [r for r in results if r["similarity_score"] > 0.5][:3]
     elif top_score > 0.45:
         filtered = [r for r in results if r["similarity_score"] > 0.4][:2]
     else:
-        filtered = results[:1]  # Use only best match
+        filtered = results[:1]
 
     context = build_source_context(filtered)
     avg_sim = sum(r["similarity_score"] for r in filtered) / len(filtered)
@@ -182,7 +251,7 @@ IMPORTANT RULES:
 3. Only return not_found=true if context is COMPLETELY unrelated
 4. For general questions (like "policy" or "document"), summarize key points
 
-Response format:
+You must return valid JSON in this format:
 {
   "not_found": false,
   "answer": "Your answer here",
@@ -199,27 +268,31 @@ Question: {question}
 
 Provide a helpful answer based on the context. If the question is general, summarize the main points."""
 
-    resp = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {"role": "system", "content": system_msg},
-            {"role": "user", "content": user_prompt},
-        ],
-        temperature=0.1,
-        max_tokens=800,
-    )
+    try:
+        resp = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": system_msg},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.1,
+            max_tokens=800,
+            response_format={"type": "json_object"},
+        )
 
-    text = resp.choices[0].message.content.strip()
+        text = resp.choices[0].message.content.strip()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"LLM API error: {str(e)}")
 
     try:
         j = json.loads(text)
-    except Exception:
+    except json.JSONDecodeError:
         start = text.find("{")
         end = text.rfind("}")
         if start != -1 and end != -1:
             try:
                 j = json.loads(text[start : end + 1])
-            except:
+            except json.JSONDecodeError:
                 j = {
                     "not_found": False,
                     "answer": text,
@@ -227,7 +300,9 @@ Provide a helpful answer based on the context. If the question is general, summa
                     "note": "Response format was non-standard",
                 }
         else:
-            raise HTTPException(status_code=500, detail="LLM response parsing failed")
+            raise HTTPException(
+                status_code=500, detail="Failed to parse LLM response as JSON"
+            )
 
     j["sources"] = filtered
     j["question"] = question
@@ -240,6 +315,10 @@ Provide a helpful answer based on the context. If the question is general, summa
             j["confidence"] = "medium"
         else:
             j["confidence"] = "low"
+
+    if force_low_confidence:
+        j["confidence"] = "low"
+        j["warning"] = "Answer based on limited context relevance"
 
     return j
 

@@ -48,6 +48,13 @@ export default function Query({
       .finally(() => setQueryLoading(false));
   }
 
+  const getSuggested = (data) => {
+    if (data.topics && data.topics.length > 0)
+      return `No direct match for your question. Try asking about specific topics such as: ${data.topics.join(", ")}`;
+
+    return "I couldn’t find an answer in the selected document/version.";
+  };
+
   return (
     <div className="query">
       <h2 className="block-headings query-header">
@@ -89,7 +96,7 @@ export default function Query({
                 queryResult.error ? (
                   <TypeEffect value={queryResult.error} />
                 ) : (
-                  <TypeEffect value="I couldn’t find an answer in the selected document/version." />
+                  <TypeEffect value={getSuggested(queryResult)} />
                 )
               ) : (
                 <div className="answer">

@@ -4,9 +4,11 @@ A RAG system with built-in version control enabling semantic search and natural 
 
 [![Live Demo](https://img.shields.io/badge/demo-live-success)](https://document-qa-rag-system.vercel.app/)
 
-![Project UI](./ui/public/imgs/1.png)
+![Project UI](./ui/public/imgs/1.jpeg)
 
-![Project Diff UI](./ui/public/imgs/2.png)
+![Project Diff UI](./ui/public/imgs/2.jpeg)
+
+![Project Add Doc UI](./ui/public/imgs/3.jpeg)
 
 ## Overview
 
@@ -61,23 +63,9 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-# Add GROQ_API_KEY to .env
+export GROQ_API_KEY=YOUR_GROQ_API_KEY
+
 python server_app.py
-```
-
-Runs at `http://localhost:8000`
-
-### Backend Setup (Docker)
-
-```bash
-docker build -t document-qa-backend ./server
-```
-
-```bash
-docker run --rm \
-  -p 8000:8000 \
-  -e GROQ_API_KEY=your_api_key_here \
-  document-qa-backend
 ```
 
 Runs at `http://localhost:8000`
@@ -174,8 +162,12 @@ GET /api/documents/{doc_name}/versions
 │   └── requirements.txt
 │
 └── ui/
+    ├── public/
     ├── src/
     │   └── components/
+    │   ├── App.js
+    │   ├── config.js
+    │   ├── index.js
     └── package.json
 ```
 
@@ -190,13 +182,13 @@ This project is deployed on **Hugging Face Spaces** using the **Docker Space SDK
 **Space URL:** https://technophyle-doc-qa.hf.space/
 
 **Deployment details**
+
 - **Space SDK:** Docker
 - **Runtime:** FastAPI (Uvicorn)
 - **Containerization:** Docker
 - **Hardware:** Free CPU
 
 **Required environment variables:** GROQ_API_KEY
-
 
 ### Vercel (Frontend)
 

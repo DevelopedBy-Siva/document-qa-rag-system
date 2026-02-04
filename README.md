@@ -27,7 +27,7 @@ Solves document version tracking by implementing version-aware semantic search. 
 ## Tech Stack
 
 - **Backend:** FastAPI, FAISS, Sentence Transformers, SQLAlchemy, Groq API
-- **Frontend:** React, Tailwind CSS
+- **Frontend:** React
 - **Deployment:** Hugging Face Spaces (backend API), Vercel (frontend)
 - **Containerization:** Docker
 

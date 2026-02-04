@@ -8,6 +8,7 @@ import { FaFolder } from "react-icons/fa";
 import axios from "axios";
 import { GoDotFill } from "react-icons/go";
 import { API_URL } from "../config";
+import TestDownloadButton from "./test_btn";
 
 const fileTypes = ["PDF", "TXT", "DOCX"];
 
@@ -54,7 +55,22 @@ export default function Upload({
                 </div>
 
                 {docFiles.length === 0 && (
-                  <p className="empty">No snapshots found</p>
+                  <>
+                    <p className="empty">No snapshots found</p>
+                    <div className="test-download">
+                      <p className="empty">
+                        For testing download the below test files:
+                      </p>
+                      <div className="btn-wrapper">
+                        <TestDownloadButton
+                          buttonText={"sample_policy_v1.txt"}
+                        />
+                        <TestDownloadButton
+                          buttonText={"sample_policy_v2.txt"}
+                        />
+                      </div>
+                    </div>
+                  </>
                 )}
               </>
             )}

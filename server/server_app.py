@@ -30,7 +30,6 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
         "https://document-qa-rag-system.vercel.app/",
     ],
     allow_credentials=True,

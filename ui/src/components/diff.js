@@ -12,6 +12,11 @@ export default function Diff({ docFiles, selectedDocId, selectedDocFile }) {
   const [diffData, setDiffData] = useState(null);
 
   useEffect(() => {
+    if (docFiles.length === 0) {
+      setLoading(false);
+      setError(false);
+      return;
+    }
     setError(false);
     setLoading(true);
     axios

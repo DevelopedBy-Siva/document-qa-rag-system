@@ -8,7 +8,9 @@ A RAG system with built-in version control enabling semantic search and natural 
 
 ![Project Diff UI](./ui/public/imgs/2.jpeg)
 
-![Project Add Doc UI](./ui/public/imgs/3.jpeg)
+![Project Switch Doc UI](./ui/public/imgs/3.jpeg)
+
+![Project Add Doc UI](./ui/public/imgs/4.jpeg)
 
 ## Overview
 
